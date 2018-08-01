@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/oxfordhcc/xray-sherlock/issues"
   },
-  "homepage": "https://github.com/oxfordhcc/xray-sherlock#readme"
+  "homepage": "https://github.com/oxfordhcc/xray-sherlock#readme",
+  "dependencies": {
+    "pg": "^7.4.3"
+  }
 }
