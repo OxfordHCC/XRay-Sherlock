@@ -1,0 +1,19 @@
+{
+  "name": "xray-sherlock",
+  "version": "1.0.0",
+  "description": "ad-hoc analysis tools for xray",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxfordhcc/xray-sherlock.git"
+  },
+  "author": "Adam Slack",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/oxfordhcc/xray-sherlock/issues"
+  },
+  "homepage": "https://github.com/oxfordhcc/xray-sherlock#readme"
+}
