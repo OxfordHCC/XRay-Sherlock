@@ -4,7 +4,7 @@ class ExampleAdHoc extends Sherlock {
 
     processAPKManifest() {
         // Overrides parent method for processing APK Manifest.
-        
+
         let jsonResult = {
             has_thing : true,
             number_of_stuff : 9001
