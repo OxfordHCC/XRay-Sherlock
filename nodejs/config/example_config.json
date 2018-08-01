@@ -1,0 +1,10 @@
+{
+    "apk_root":"/var/xray/apps",
+    "db_info": {
+        "db_name":"xraydb",
+        "host":"localhost",
+        "port":"5432",
+        "user":"sherlock",
+        "password":""
+    }
+}
