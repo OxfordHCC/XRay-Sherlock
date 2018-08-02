@@ -204,7 +204,8 @@ class Sherlock {
         return dexLines;
     }
 
-    async analyseApp(mainfest) {
+    async analyseApp(mainfest, dexLines, smali) {
+        console.log(`Default 'analyseApp' method called. Doing Nothing.`);
         return;
     }
 
@@ -213,14 +214,20 @@ class Sherlock {
             console.log(`No results provided.`);
             return;
         }
-        await this.query(
-            `insert into ad_hoc_analysis(app_id, analyser_name, analysis_by, results) values ($1,$2,$3,$4)`,
-            [
-                appInfo.id,
-                this.analyserName,
-
-            ]
-        )
+        try{
+            await this.query(
+                `insert into ad_hoc_analysis(app_id, analyser_name, analysis_by, results) values ($1,$2,$3,$4)`,
+                [
+                    appInfo.id,
+                    this.analyserName,
+                    this.analysisBy,
+                    results
+                ]
+            )
+        }
+        catch(err) {
+            console.log(`Error inserting results into the database. AppID: ${appInfo.id}. App Package Name: ${appInfo.app}. Error: ${err}`);
+        }
     }
 
     async performAnalysis() {
@@ -234,6 +241,10 @@ class Sherlock {
             const mainfest = await this.getAPKManifest(appInfo);
             const classDex = await this.getAPKDex(appInfo);
             const smalis   = this.getAPKSmali();
+
+            const results = await this.analyseApp(mainfest, classDex, smalis);
+
+            await this.storeAnalysisResults(appInfo, results);
 
             this.removeAPKUnpack(appInfo);
         }

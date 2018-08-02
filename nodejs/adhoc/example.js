@@ -10,15 +10,11 @@ class ExampleAdHoc extends Sherlock {
      * @param {Array of Strings, one for each line in the mainfest} mainfest
      * @returns {The results of analysis as a JSON object.}
      */
-    analyseApp(mainfest, classFile, smali) {
-
-        let hasThing = false;
-        let numberOfStuff = 0;
-
+    async analyseApp(mainfest, dexLines, smali) {
         // Build a JSON object of the results
+        console.log(`Using Example Analysis App method`)
         let jsonResult = {
-            has_thing : hasThing,
-            number_of_stuff : numberOfStuff
+            dexLength : dexLines.length,
         }
 
         // return the json object of results.
@@ -27,7 +23,7 @@ class ExampleAdHoc extends Sherlock {
 }
 
 function main() {
-    const analyser = new ExampleAdHoc();
+    const analyser = new ExampleAdHoc('Example','Adam');
     analyser.performAnalysis();
 }
 
