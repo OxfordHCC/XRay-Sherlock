@@ -3,6 +3,7 @@ const pg = require('pg');
 const fs = require('fs-extra');
 const util = require('util');
 const bashExec = util.promisify(require('child_process').exec);
+const parseString = util.promisify(require('xml2js').parseString);
 
 const MAX_DATE = new Date('2070-01-01Z00:00:00:000');
 const MIN_DATE = new Date('1970-01-01Z00:00:00:000');
@@ -171,8 +172,10 @@ class Sherlock {
         fs.removeSync(`${config.apk_unpack_root}/${appInfo.app}`);
     }
 
-    getAPKManifest() {
-
+    async getAPKManifest(appInfo) {
+        console.log(`Loading App Mainfest: ${appInfo.app}`);
+        const manifest =  fs.readFileSync(`${config.apk_unpack_root}/${appInfo.app}/AndroidManifest.xml`).toString();
+        return await parseString(manifest);
     }
 
     getAPKSmali() {
@@ -215,11 +218,9 @@ class Sherlock {
 
             await this.unpackAPK(appInfo)
 
-            const mainfest = this.getAPKManifest();
+            const mainfest = await this.getAPKManifest(appInfo);
             const classDex = await this.getAPKDex(appInfo);
             const smalis   = this.getAPKSmali();
-        
-            console.log(`Dex Length: ${classDex.length}`);
 
             this.removeAPKUnpack(appInfo);
         }
