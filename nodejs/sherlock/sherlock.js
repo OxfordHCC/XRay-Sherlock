@@ -12,6 +12,7 @@ class Sherlock {
 
     constructor(
         analyserName,
+        analysisBy,
         maxDate= MAX_DATE,
         minDate = MIN_DATE,
         appPackageList = [],
@@ -20,7 +21,8 @@ class Sherlock {
 
         console.log(config);
         // Must be set.
-        this.analyserName = analyserName
+        this.analyserName = analyserName;
+        this.analysisBy = analysisBy;
 
         // optional Params
         this.maxDate = maxDate;
@@ -206,8 +208,19 @@ class Sherlock {
         return;
     }
 
-    async storeAnalysisResults(results) {
+    async storeAnalysisResults(appInfo, results) {
+        if(!results) {
+            console.log(`No results provided.`);
+            return;
+        }
+        await this.query(
+            `insert into ad_hoc_analysis(app_id, analyser_name, analysis_by, results) values ($1,$2,$3,$4)`,
+            [
+                appInfo.id,
+                this.analyserName,
 
+            ]
+        )
     }
 
     async performAnalysis() {
