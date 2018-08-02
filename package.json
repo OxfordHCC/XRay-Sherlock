@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/oxfordhcc/xray-sherlock/issues"
   },
-  "homepage": "https://github.com/oxfordhcc/xray-sherlock#readme"
+  "homepage": "https://github.com/oxfordhcc/xray-sherlock#readme",
+  "dependencies": {
+    "fs-extra": "^7.0.0",
+    "glob": "^7.1.2",
+    "pg": "^7.4.3",
+    "walk": "^2.3.14",
+    "xml2js": "^0.4.19"
+  }
 }

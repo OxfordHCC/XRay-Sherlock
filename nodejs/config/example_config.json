@@ -1,7 +1,8 @@
 {
     "apk_root":"/var/xray/apps",
+    "apk_unpack_root":"/tmp/xray/apps",
     "db_info": {
-        "db_name":"xraydb",
+        "database":"xraydb",
         "host":"localhost",
         "port":"5432",
         "user":"sherlock",
