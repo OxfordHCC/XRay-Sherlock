@@ -1,34 +1,23 @@
 const config = require('../config/config.json');
 const pg = require('pg');
-const fs = require('fs');
+const fs = require('fs-extra');
+const util = require('util');
+const bashExec = util.promisify(require('child_process').exec);
+
+const MAX_DATE = new Date('2070-01-01Z00:00:00:000');
+const MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
 class Sherlock {
 
-    // App Version Filter Options
-    maxDate;
-    minDate;
-    appPackageList;
-
-    // App Version Filter Flags
-    useMaxDate;
-    useMinDate;
-    useDateRange;
-    useAppPackageList;
-    useLatestAppVerions;
-
-    // Database connection pool
-    pool;
-
-    // Name of the Analyser. Used to distinguish between results in the DB.
-    analyserName;
-
     constructor(
         analyserName,
-        maxDate = new Date(), // Need to Default to a date 1000 years in the future
-        minDate = new Date(), // Need to Default to a date 1000 years in the past
+        maxDate= MAX_DATE,
+        minDate = MIN_DATE,
         appPackageList = [],
         useLatestAppVerions = true
     ) {
+
+        console.log(config);
         // Must be set.
         this.analyserName = analyserName
 
@@ -41,15 +30,19 @@ class Sherlock {
         // DB setup
         const dbConfig = config.db_info;
         dbConfig.max = 10;
-        dbCfg.idleTimeoutMillis = 30000;
+        dbConfig.idleTimeoutMillis = 30000;
 
         this.pool = new pg.Pool(dbConfig);
         this.pool.on('error', (err) => {
             console.log('idle client error', err.message, err.stack);
         });
+
+
+        // Ensure APK Unpack Root exists.
+        fs.ensureDirSync(config.apk_unpack_root);
     }
 
-        // export the query method for passing queries to the pool
+    // export the query method for passing queries to the pool
     query(text, values) {
         try {
             if (values) {
@@ -69,7 +62,7 @@ class Sherlock {
 
     async getLatestAppVersion() {
         try {
-            let res = this.query(`
+            let res = await this.query(`
                 select app_versions.id, app_versions.app, a.max
                     from app_versions, (
                             select app, max(last_dl_attempt)
@@ -96,7 +89,7 @@ class Sherlock {
 
     async getLatestAppVersions() {
         try {
-            let res = this.query(`
+            let res = await this.query(`
                 select id, app from app_versions
                     where downloaded
                     and last_dl_attempt >= $1
@@ -138,7 +131,7 @@ class Sherlock {
 
     async selectAppVersionDetails(appID) {
         try {
-            let res = this.query("select * from app_versions where id=$1", appID);
+            let res = await this.query("select * from app_versions where id=$1", [appID]);
             return res.rows[0];
         }
         catch(err) {
@@ -146,25 +139,64 @@ class Sherlock {
         }
     }
 
-    async getAPKPath(appInfo) {
+    getAPKPath(appInfo) {
         let appPath = '';
 
         if(appInfo.apk_location) {
             appPath = `${appInfo.apk_location}/${appInfo.app}.apk`;
         }
+        else {
+            let apkDirectory = [
+                config.apk_root,
+                appInfo.app,
+                appInfo.store,
+                appInfo.region,
+                appInfo.ver
+            ].join('/');
+            appPath = `${apkDirectory}/${appInfo.app}.apk`;
+        }
+        return appPath;
+    }
+
+
+    async unpackAPK(appInfo) {
+        console.log(`Unpacking App: ${appInfo.app}`);
+        const apkPath = this.getAPKPath(appInfo);
+        const {stdout, stderr} = await bashExec(
+            `apktool d -s ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f`        );
+    }
+
+    removeAPKUnpack(appInfo) {
+        console.log(`removing APK Unpack: ${appInfo.app}`);
+        fs.removeSync(`${config.apk_unpack_root}/${appInfo.app}`);
+    }
+
+    getAPKManifest() {
 
     }
 
-    async getAPK(apkPath) {
+    getAPKSmali() {
 
     }
 
-    async unpackAPK(apk) {
+    async getAPKDex(appInfo) {
 
-    }
+        const dexFiles = fs.readdirSync(
+            `${config.apk_unpack_root}/${appInfo.app}`
+        ).filter((fileName) => fileName.endsWith('.dex'));
 
-    async getAPKManifest(apk) {
+        console.log(`Number of Dex Files found: ${dexFiles.length}`);
 
+        let dexLines = [];
+
+        for(const dex of dexFiles) {
+            const { stdout, stderr } = await bashExec(
+                `strings -n 11 ${config.apk_unpack_root}/${appInfo.app}/${dex}`,
+                {maxBuffer: Infinity}
+            );
+            dexLines = dexLines.concat(stdout.split('\n'));
+        }
+        return dexLines;
     }
 
     async analyseApp(mainfest) {
@@ -176,11 +208,20 @@ class Sherlock {
     }
 
     async performAnalysis() {
-        const appPackageNames = await this.getAppVersionIDs();
+        const rows = await this.getAppVersionIDs();
+        for(const row of rows) {
+            console.log(`Analysing AppID: ${row.id}`);
+            const appInfo = await this.selectAppVersionDetails(row.id)
 
-        for(const pName of appPackageNames) {
-            const apk = await this.getAPK(pName)
-            await this.unpackAPK()
+            await this.unpackAPK(appInfo)
+
+            const mainfest = this.getAPKManifest();
+            const classDex = await this.getAPKDex(appInfo);
+            const smalis   = this.getAPKSmali();
+        
+            console.log(`Dex Length: ${classDex.length}`);
+
+            this.removeAPKUnpack(appInfo);
         }
     }
 }

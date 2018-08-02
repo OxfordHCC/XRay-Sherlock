@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/oxfordhcc/xray-sherlock#readme",
   "dependencies": {
+    "fs-extra": "^7.0.0",
     "pg": "^7.4.3"
   }
 }

@@ -15,18 +15,6 @@ class ExampleAdHoc extends Sherlock {
         let hasThing = false;
         let numberOfStuff = 0;
 
-        for(const line of classFile) {
-
-            if(line.includes("thing")) {
-                hasThing = true;
-            }
-
-            if(line.includes("stuff")) {
-                numberOfStuff += 1;
-            }
-        }
-
-
         // Build a JSON object of the results
         let jsonResult = {
             has_thing : hasThing,
@@ -42,3 +30,5 @@ function main() {
     const analyser = new ExampleAdHoc();
     analyser.performAnalysis();
 }
+
+main();
