@@ -1,5 +1,6 @@
 const config = require('../config/config.json');
 const pg = require('pg');
+const fs = require('fs');
 
 class Sherlock {
 
@@ -23,8 +24,8 @@ class Sherlock {
 
     constructor(
         analyserName,
-        maxDate = new Date(),
-        minDate = new Date(),
+        maxDate = new Date(), // Need to Default to a date 1000 years in the future
+        minDate = new Date(), // Need to Default to a date 1000 years in the past
         appPackageList = [],
         useLatestAppVerions = true
     ) {
@@ -93,7 +94,7 @@ class Sherlock {
         }
     }
 
-    async getLatestAppVersion() {
+    async getLatestAppVersions() {
         try {
             let res = this.query(`
                 select id, app from app_versions
@@ -109,14 +110,49 @@ class Sherlock {
         }
     }
 
+    async getLatestAppVersionsFiltered() {
+
+    }
+
+    async getAllAppVersionsFiltered() {
+
+    }
+
     async getAppVersionIDs() {
         if (this.appPackageList.length == 0 && this.useLatestAppVerions) {
-            return await this.getLatestAppVersion();
+            return await this.getLatestAppVersions();
         }
 
         if(this.appPackageList.length == 0 && !this.useLatestAppVerions) {
             return await this.getAllAppVersions();
         }
+
+        if(this.appPackageList.length != 0 && this.useLatestAppVerions) {
+            return await this.getLatestAppVersionsFiltered();
+        }
+
+        if(this.appPackageList.length != 0 && !this.useLatestAppVerions) {
+            return await this.getAllAppVersionsFiltered();
+        }
+    }
+
+    async selectAppVersionDetails(appID) {
+        try {
+            let res = this.query("select * from app_versions where id=$1", appID);
+            return res.rows[0];
+        }
+        catch(err) {
+            console.log(`Error selecting app version ${appID}. Error: ${err}`);
+        }
+    }
+
+    async getAPKPath(appInfo) {
+        let appPath = '';
+
+        if(appInfo.apk_location) {
+            appPath = `${appInfo.apk_location}/${appInfo.app}.apk`;
+        }
+
     }
 
     async getAPK(apkPath) {
@@ -147,6 +183,6 @@ class Sherlock {
             await this.unpackAPK()
         }
     }
-
 }
+
 module.exports = Sherlock;

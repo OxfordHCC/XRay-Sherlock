@@ -7,7 +7,7 @@ class ExampleAdHoc extends Sherlock {
      *
      * Overrides the parent process APK Manifest method.
      *
-     * @param {Array of Strings, one for each line in the mainfest} mainfest 
+     * @param {Array of Strings, one for each line in the mainfest} mainfest
      * @returns {The results of analysis as a JSON object.}
      */
     analyseApp(mainfest, classFile, smali) {
