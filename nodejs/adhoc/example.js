@@ -24,7 +24,7 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
  * string is a line found in the classes.dex file(s). The third is the ...
  *
  *
- *                         Overriding getAppVersionIDs().
+ *                        Overriding getAppVersionIDs().
  *
  * You can also override any of the methods implemented in Sherlock if you so wish,
  * and it might be of use to override the 'getAppVersionIDs()' method, which returns
@@ -57,12 +57,20 @@ class ExampleAdHoc extends Sherlock {
 
         // using the AndroidManifest.xml
         const permissions = manifest['manifest']['uses-permission'].map((perm) => perm['$']['android:name'])
+
+        // using the smali info.
+
+        const packages = smali.packages;
+
         const jsonResult = {
             httpLines : urls,
             httpCount : urls.length,
 
             permission : permissions,
-            permissionCount : permissions.length
+            permissionCount : permissions.length,
+
+            packages : packages,
+            packageCount : packages.length
         }
 
         // return the json object of results.

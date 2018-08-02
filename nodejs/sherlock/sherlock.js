@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const util = require('util');
 const bashExec = util.promisify(require('child_process').exec);
 const parseString = util.promisify(require('xml2js').parseString);
+const glob = require('glob').Glob;
 
 const MAX_DATE = new Date('2070-01-01Z00:00:00:000');
 const MIN_DATE = new Date('1970-01-01Z00:00:00:000');
@@ -162,11 +163,11 @@ class Sherlock {
     }
 
 
-    async unpackAPK(appInfo) {
-        console.log(`Unpacking App: ${appInfo.app}`);
+    async unpackAPK(appInfo, keepDex = true) {
+        console.log(`Unpacking App for ${keepDex ? 'Manifest and Dex' : 'smali files'}: ${appInfo.app}`);
         const apkPath = this.getAPKPath(appInfo);
         const {stdout, stderr} = await bashExec(
-            `apktool d -s ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f`        );
+            `apktool d ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f ${keepDex ? '-s' : ''}`);
     }
 
     removeAPKUnpack(appInfo) {
@@ -180,8 +181,27 @@ class Sherlock {
         return await parseString(manifest);
     }
 
-    getAPKSmali() {
+    async getAPKSmali(appInfo) {
+        console.log('Finding all smali file paths.')
+        const smaliRoot = `${config.apk_unpack_root}/${appInfo.app}/smali/`;
+        const {stdout, stderr} = await bashExec(
+            `find ${smaliRoot} -name '*.smali'`,
+            {maxBuffer: Infinity}
+        );
+        if(stderr) {
+            console.log(stderr);
+        }
 
+        const paths = stdout.split('\n');
+
+        const packages = paths.map((path) => path.replace(smaliRoot, '').replace('.smali', '').replace(/\//g ,'.'));
+
+        const smaliInfo = {
+            smaliPaths: paths,
+            packages: packages
+        }
+
+        return smaliInfo
     }
 
     async getAPKDex(appInfo) {
@@ -240,7 +260,9 @@ class Sherlock {
 
             const mainfest = await this.getAPKManifest(appInfo);
             const classDex = await this.getAPKDex(appInfo);
-            const smalis   = this.getAPKSmali();
+
+            await this.unpackAPK(appInfo, false);
+            const smalis = await this.getAPKSmali(appInfo);
 
             const results = await this.analyseApp(mainfest, classDex, smalis);
 
