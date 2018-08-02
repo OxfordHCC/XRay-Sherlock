@@ -4,7 +4,7 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
 
 
 /**
- * Example Ad Hoc
+ *                               Example Ad Hoc
  *
  * This class serves as an example of how to extend and implement Sherlock.
  *
@@ -22,6 +22,18 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
  * The analysApp method must have 3 parameters, the first is the AndroidManifest.xml
  * passed into the method as a JSON object. The second is an array of strings, each
  * string is a line found in the classes.dex file(s). The third is the ...
+ *
+ *
+ *                         Overriding getAppVersionIDs().
+ *
+ * You can also override any of the methods implemented in Sherlock if you so wish,
+ * and it might be of use to override the 'getAppVersionIDs()' method, which returns
+ * an array of id values found in the app_versions table.
+ *
+ * The version of the method implemented in sherlock utilises some built in flags
+ * to provide some flexibility, the default behaviour of the method with the
+ * default flag values is to select the app version ID for the latest version
+ * of all apps in the app_versions table.
  */
 class ExampleAdHoc extends Sherlock {
 
