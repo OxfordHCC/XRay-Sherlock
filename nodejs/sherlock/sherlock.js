@@ -204,7 +204,7 @@ class Sherlock {
         return dexLines;
     }
 
-    async analyseApp(mainfest, dexLines, smali) {
+    async analyseApp(manifest, dexLines, smali) {
         console.log(`Default 'analyseApp' method called. Doing Nothing.`);
         return;
     }
