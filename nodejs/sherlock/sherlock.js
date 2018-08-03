@@ -263,8 +263,7 @@ class Sherlock {
         return dexLines;
     }
 
-    async analyseApp(manifest, dexLines, smali) {
-        console.log(`Default 'analyseApp' method called. Doing Nothing.`);
+    async analyseApp() {
         return;
     }
 
