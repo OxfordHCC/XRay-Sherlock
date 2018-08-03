@@ -6,17 +6,23 @@ of android APKs found in the XRay App Observatory.
 In order to begin using Sherlock, all you need to do is 'require' it in your project.
 
 Example
-```
+```js
 const Sherlock = require('../sherlock/sherlock);
 ```
 
 The above example will allow you to include the Sherlock class in your project, if you
 have created an analysis script in the `nodejs/adhoc/` directory.
 
-In order to implement the Sherlock interface, you are required to define one function.
+In order to implement the Sherlock interface, you are required extend the Sherlock class,
+and then define one function.
 
-```
+```js
+class CustomAnalyser extends Sherlock {
+
     async analyseApp(manifest, dexlines, smali) {...}
+
+}
+
 ```
 
-The `analyseApp` function is what is executed for each android APK that is unpacked.
+The `analyseApp` function is what is executed for each android APK that is unpacked. 

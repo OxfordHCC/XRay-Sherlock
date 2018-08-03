@@ -10,7 +10,7 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
  *
  * There is essentially only one method that needs to be implemented:
  *
- *          async analyseApp(manifest, dexlines, smali) {...}
+ *          async analyseApp(manifest, dexLines, smali) {...}
  *
  * For each app that is unpacked and then analysed, this is the method that
  * is invoked and will then carry out the analysis.
