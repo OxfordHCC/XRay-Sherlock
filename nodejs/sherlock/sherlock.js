@@ -162,12 +162,34 @@ class Sherlock {
         return appPath;
     }
 
+    logUnpackFailure(appInfo, err) {
+        let errLog = require(config.unpack_failure_logfile);
+        if(!errLog.failedApps) {
+            errLog.failedApps = [];
+        }
+        appInfo.failureInfo = {
+            failureDate : Date.now(),
+            analyserName : this.analyserName,
+            analysisBy : this.analysisBy,
+            failureError : err
+        }
+
+        errLog.failedApps.push(appInfo);
+        const errLogStr = JSON.stringify(appInfo,null, 2);
+        fs.writeFileSync(config.unpack_failure_logfile, errLogStr,'utf-8');
+    }
 
     async unpackAPK(appInfo, keepDex = true) {
         console.log(`Unpacking App for ${keepDex ? 'Manifest and Dex' : 'smali files'}: ${appInfo.app}`);
         const apkPath = this.getAPKPath(appInfo);
-        const {stdout, stderr} = await bashExec(
-            `apktool d ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f ${keepDex ? '-s' : ''}`);
+        try{
+            const {stdout, stderr} = await bashExec(
+                `apktool d ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f ${keepDex ? '-s' : ''}`);
+        }
+        catch(err) {
+            console.log(`Critial Error Using APK Tool. Error: ${err}`);
+            this.logUnpackFailure(appInfo, err);
+        }
     }
 
     removeAPKUnpack(appInfo) {
