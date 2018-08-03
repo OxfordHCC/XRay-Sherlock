@@ -71,25 +71,23 @@ class ExampleAdHoc extends Sherlock {
         console.log(`Using Example Analysis App method`)
 
         // Using the classes.dex
-        //const urls = dexLines.map((line) => line.match(regex)).reduce((a,b) => a.concat(b), []).filter((match) => match);
+        const urls = dexLines.map((line) => line.match(regex)).reduce((a,b) => a.concat(b), []).filter((match) => match);
 
         // using the AndroidManifest.xml
-        //const permissions = manifest['manifest']['uses-permission'].map((perm) => perm['$']['android:name'])
+        const permissions = manifest['manifest']['uses-permission'].map((perm) => perm['$']['android:name'])
 
         // using the smali info.
         const packages = smali.packages;
-        const hasGoogleConsent = smali.packages.some((name) => name.includes('com.google.ads.consent'));
-        const hasGoogleAds = smali.packages.some((name) => name.includes('com.google.ads'));
+
         const jsonResult = {
-            // httpLines : urls,
-            // httpCount : urls.length,
+            httpLines : urls,
+            httpCount : urls.length,
 
-            // permission : permissions,
-            // permissionCount : permissions.length,
+            permission : permissions,
+            permissionCount : permissions.length,
 
-            hasGoogleConsent : hasGoogleConsent,
-            hasGoogleAds : hasGoogleAds ,
-            packageCount : packages.length
+            packageCount : packages.length,
+            packages : packages
         }
 
         // return the json object of results.
