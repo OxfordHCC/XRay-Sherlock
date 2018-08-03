@@ -1,5 +1,7 @@
 # XRay-Sherlock
 
+## Introduction
+
 Sherlock is an interface that serves the purpose of you with a means of processing a set
 of android APKs found in the XRay App Observatory.
 
@@ -25,4 +27,24 @@ class CustomAnalyser extends Sherlock {
 
 ```
 
-The `analyseApp` function is what is executed for each android APK that is unpacked. 
+The `analyseApp` function is what is executed for each android APK that is unpacked. The
+parameters of the function are fixed, and must be present in the implemented method. If
+Sherlock cannot find the 3 expected parameters `manifest`, `dexLines`, and `smali` in
+that exact spelling, capitalisation, and order, the script will not exectute.
+
+Sherlock is expecting a JSON object to be returned from this method. Thus, the results
+from any analysis of the `manifest`, `dexLines`, and `smali` parameters should be put
+into a JSON Object format. This is because Sherlock will then try to insert the results
+into the XRay database.
+
+## Parameters
+
+### `manifest`
+
+
+
+### `dexLines`
+
+
+
+### `smali`
