@@ -183,7 +183,7 @@ class Sherlock {
     logUnpackFailure(appInfo, err) {
         let errLog = require(config.unpack_failure_logfile);
         appInfo.failureInfo = {
-            failureDate: Date.now(),
+            failureDate: new Date(Date.now()).toLocaleString(),
             analyserName: this.analyserName,
             analysisBy: this.analysisBy,
             failureError: err
