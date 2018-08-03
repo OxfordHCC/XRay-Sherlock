@@ -1,6 +1,7 @@
 {
     "apk_root":"/var/xray/apps",
     "apk_unpack_root":"/tmp/xray/apps",
+    "unpack_failure_logfile":"/tmp/xray/failed_unpacks.json",
     "db_info": {
         "database":"xraydb",
         "host":"localhost",

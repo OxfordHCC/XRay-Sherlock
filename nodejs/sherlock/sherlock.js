@@ -14,7 +14,7 @@ class Sherlock {
     constructor(
         analyserName,
         analysisBy,
-        maxDate= MAX_DATE,
+        maxDate = MAX_DATE,
         minDate = MIN_DATE,
         appPackageList = [],
         useLatestAppVerions = true
@@ -44,6 +44,7 @@ class Sherlock {
 
         // Ensure APK Unpack Root exists.
         fs.ensureDirSync(config.apk_unpack_root);
+        this.ensureValidUnpackFailureLogfile();
     }
 
     // export the query method for passing queries to the pool
@@ -120,15 +121,15 @@ class Sherlock {
             return await this.getLatestAppVersions();
         }
 
-        if(this.appPackageList.length == 0 && !this.useLatestAppVerions) {
+        if (this.appPackageList.length == 0 && !this.useLatestAppVerions) {
             return await this.getAllAppVersions();
         }
 
-        if(this.appPackageList.length != 0 && this.useLatestAppVerions) {
+        if (this.appPackageList.length != 0 && this.useLatestAppVerions) {
             return await this.getLatestAppVersionsFiltered();
         }
 
-        if(this.appPackageList.length != 0 && !this.useLatestAppVerions) {
+        if (this.appPackageList.length != 0 && !this.useLatestAppVerions) {
             return await this.getAllAppVersionsFiltered();
         }
     }
@@ -138,7 +139,7 @@ class Sherlock {
             let res = await this.query("select * from app_versions where id=$1", [appID]);
             return res.rows[0];
         }
-        catch(err) {
+        catch (err) {
             console.log(`Error selecting app version ${appID}. Error: ${err}`);
         }
     }
@@ -146,7 +147,7 @@ class Sherlock {
     getAPKPath(appInfo) {
         let appPath = '';
 
-        if(appInfo.apk_location) {
+        if (appInfo.apk_location) {
             appPath = `${appInfo.apk_location}/${appInfo.app}.apk`;
         }
         else {
@@ -162,12 +163,50 @@ class Sherlock {
         return appPath;
     }
 
+    ensureValidUnpackFailureLogfile() {
+        if (!fs.existsSync(config.unpack_failure_logfile)) {
+            fs.writeFileSync(
+                config.unpack_failure_logfile,
+                JSON.stringify({ failedApps: [] }),
+                'utf-8'
+            )
+        }
+        try {
+            require(config.unpack_failure_logfile);
+        }
+        catch (err) {
+            console.log(`Logfile Invalid. Error: ${err}`);
+            throw err;
+        }
+    }
+
+    logUnpackFailure(appInfo, err) {
+        let errLog = require(config.unpack_failure_logfile);
+        appInfo.failureInfo = {
+            failureDate: new Date(Date.now()).toLocaleString(),
+            analyserName: this.analyserName,
+            analysisBy: this.analysisBy,
+            failureError: err
+        }
+
+        errLog.failedApps.push(appInfo);
+        const errLogStr = JSON.stringify(errLog, null, 2);
+        fs.writeFileSync(config.unpack_failure_logfile, errLogStr, 'utf-8');
+    }
 
     async unpackAPK(appInfo, keepDex = true) {
         console.log(`Unpacking App for ${keepDex ? 'Manifest and Dex' : 'smali files'}: ${appInfo.app}`);
         const apkPath = this.getAPKPath(appInfo);
-        const {stdout, stderr} = await bashExec(
-            `apktool d ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f ${keepDex ? '-s' : ''}`);
+        try {
+            const { stdout, stderr } = await bashExec(
+                `apktool d ${apkPath} -o ${config.apk_unpack_root}/${appInfo.app} -f ${keepDex ? '-s' : ''}`);
+        }
+        catch (err) {
+            console.log(`Critial Error Using APK Tool. Error: ${err}`);
+            this.logUnpackFailure(appInfo, err);
+            return false;
+        }
+        return true;
     }
 
     removeAPKUnpack(appInfo) {
@@ -177,24 +216,24 @@ class Sherlock {
 
     async getAPKManifest(appInfo) {
         console.log(`Loading App Mainfest: ${appInfo.app}`);
-        const manifest =  fs.readFileSync(`${config.apk_unpack_root}/${appInfo.app}/AndroidManifest.xml`).toString();
+        const manifest = fs.readFileSync(`${config.apk_unpack_root}/${appInfo.app}/AndroidManifest.xml`).toString();
         return await parseString(manifest);
     }
 
     async getAPKSmali(appInfo) {
         console.log('Finding all smali file paths.')
         const smaliRoot = `${config.apk_unpack_root}/${appInfo.app}/smali/`;
-        const {stdout, stderr} = await bashExec(
+        const { stdout, stderr } = await bashExec(
             `find ${smaliRoot} -name '*.smali'`,
-            {maxBuffer: Infinity}
+            { maxBuffer: Infinity }
         );
-        if(stderr) {
+        if (stderr) {
             console.log(stderr);
         }
 
         const paths = stdout.split('\n');
 
-        const packages = paths.map((path) => path.replace(smaliRoot, '').replace('.smali', '').replace(/\//g ,'.'));
+        const packages = paths.map((path) => path.replace(smaliRoot, '').replace('.smali', '').replace(/\//g, '.'));
 
         const smaliInfo = {
             smaliPaths: paths,
@@ -214,10 +253,10 @@ class Sherlock {
 
         let dexLines = [];
 
-        for(const dex of dexFiles) {
+        for (const dex of dexFiles) {
             const { stdout, stderr } = await bashExec(
                 `strings -n 11 ${config.apk_unpack_root}/${appInfo.app}/${dex}`,
-                {maxBuffer: Infinity}
+                { maxBuffer: Infinity }
             );
             dexLines = dexLines.concat(stdout.split('\n'));
         }
@@ -230,11 +269,11 @@ class Sherlock {
     }
 
     async storeAnalysisResults(appInfo, results) {
-        if(!results) {
+        if (!results) {
             console.log(`No results provided.`);
             return;
         }
-        try{
+        try {
             await this.query(
                 `insert into ad_hoc_analysis(app_id, analyser_name, analysis_by, results) values ($1,$2,$3,$4)`,
                 [
@@ -245,30 +284,76 @@ class Sherlock {
                 ]
             )
         }
-        catch(err) {
+        catch (err) {
             console.log(`Error inserting results into the database. AppID: ${appInfo.id}. App Package Name: ${appInfo.app}. Error: ${err}`);
         }
     }
 
+    verifyAnalysisMethodParameters() {
+        const methodString = this.analyseApp.toString();
+        let args = [];
+        try {
+            args = methodString.match(/\(\s*([^)]+?)\s*\)/)[1].split(', ');
+        }
+        catch (err) {
+            console.log(`Unable to verify analysis method has valid parameters. Error: ${err}`)
+            return false;
+        }
+
+        if (args.length != 3) {
+            console.log(`Invalid number of parameters on the implemented 'analyseApp' method. Expected 3, found ${args.length}`);
+            return false;
+        }
+
+        if (args[0] != 'manifest') {
+            console.log(`Invalid first parameter name for the implemented 'analyseApp' method. Expected 'manifest', found ${args[0]}`);
+            return false;
+        }
+
+        if (args[1] != 'dexLines') {
+            console.log(`Invalid second parameter name for the implemented 'analyseApp' method. Expected 'dexLines', found ${args[1]}`);
+            return false;
+        }
+
+        if (args[2] != 'smali') {
+            console.log(`Invalid third parameter name for the implemented 'analyseApp' method. Expected 'smali', found ${args[2]}`);
+            return false;
+        }
+
+        console.log(`Implemented 'analyseApp' method passes validation checks.`);
+        return true;
+    }
+
     async performAnalysis() {
+
+        const isAnalysisMethodValid = this.verifyAnalysisMethodParameters();
+        if (!isAnalysisMethodValid) {
+            console.log(`Analysis Method Invalid.`);
+            return isAnalysisMethodValid;
+        }
+
         const rows = await this.getAppVersionIDs();
-        for(const row of rows) {
+        for (const row of rows) {
             console.log(`Analysing AppID: ${row.id}`);
             const appInfo = await this.selectAppVersionDetails(row.id)
 
-            await this.unpackAPK(appInfo)
+            let successfulUnpack = await this.unpackAPK(appInfo)
 
-            const mainfest = await this.getAPKManifest(appInfo);
-            const classDex = await this.getAPKDex(appInfo);
+            if (successfulUnpack) {
 
-            await this.unpackAPK(appInfo, false);
-            const smalis = await this.getAPKSmali(appInfo);
+                const mainfest = await this.getAPKManifest(appInfo);
+                const classDex = await this.getAPKDex(appInfo);
 
-            const results = await this.analyseApp(mainfest, classDex, smalis);
+                await this.unpackAPK(appInfo, false);
+                const smalis = await this.getAPKSmali(appInfo);
 
-            await this.storeAnalysisResults(appInfo, results);
+                const results = await this.analyseApp(mainfest, classDex, smalis);
 
-            this.removeAPKUnpack(appInfo);
+                await this.storeAnalysisResults(appInfo, results);
+
+                this.removeAPKUnpack(appInfo);
+
+            }
         }
     }
 }
