@@ -5,7 +5,7 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
 
 /**
  *                               Example Ad Hoc
- *
+ *                               **************
  * This class serves as an example of how to extend and implement Sherlock.
  *
  * There is essentially only one method that needs to be implemented:
@@ -21,11 +21,30 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
  *
  * The analysApp method must have 3 parameters, the first is the AndroidManifest.xml
  * passed into the method as a JSON object. The second is an array of strings, each
- * string is a line found in the classes.dex file(s). The third is the ...
+ * string is a line found in the classes.dex file(s). The third is a JSON object
+ * that contains the file paths for each smali file, as well as the equivalent
+ * java package name for each file.
+ *
+ *                                  Manifest
+ *                                  ********
+ * The manifest param will contain things like permission information, and sometimes
+ * even API keys.
+ *
+ *                                  dexLines
+ *                                  ********
+ * The dexLines param will contain evidence of hostnames and function calls.
  *
  *
- *                        Overriding getAppVersionIDs().
+ *                                   smali
+ *                                   *****
+ * The smali param will contain information about the packages used in the application.
  *
+ * More in depth searching can be performed on the smali files by opening and reading
+ * the file at the provided path. None of the smali files will be removed until
+ * after the results are entered into the database.
+ *
+ *                        Overriding getAppVersionIDs()
+ *                        *****************************
  * You can also override any of the methods implemented in Sherlock if you so wish,
  * and it might be of use to override the 'getAppVersionIDs()' method, which returns
  * an array of id values found in the app_versions table.
@@ -44,7 +63,7 @@ class ExampleAdHoc extends Sherlock {
      *
      * @param {JSON equivalent of the AndroidManifest.xml file.} mainfest
      * @param {A string array of lines found in each of the classes.dex files} dexLines
-     * @param {} smali
+     * @param {A JSON object of smali filepaths and converted Java package names} smali
      *
      * @returns {The results of analysis as a JSON object.}
      */
