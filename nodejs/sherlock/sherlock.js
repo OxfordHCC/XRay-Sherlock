@@ -250,7 +250,49 @@ class Sherlock {
         }
     }
 
+    verifyAnalysisMethodParameters() {
+        const methodString = this.analyseApp.toString();
+        let args = [];
+        try {
+            args = methodString.match(/\(\s*([^)]+?)\s*\)/)[1].split(', ');
+        }
+        catch(err) {
+            console.log(`Unable to verify analysis method has valid parameters. Error: ${err}`)
+            return false;
+        }
+
+        if(args.length != 3) {
+            console.log(`Invalid number of parameters on the implemented 'analyseApp' method. Expected 3, found ${args.length}`);
+            return false;
+        }
+
+        if(args[0] != 'manifest') {
+            console.log(`Invalid first parameter name for the implemented 'analyseApp' method. Expected 'manifest', found ${args[0]}`);
+            return false;
+        }
+
+        if(args[1] != 'dexLines') {
+            console.log(`Invalid second parameter name for the implemented 'analyseApp' method. Expected 'dexLines', found ${args[1]}`);
+            return false;
+        }
+
+        if(args[2] != 'smali') {
+            console.log(`Invalid third parameter name for the implemented 'analyseApp' method. Expected 'smali', found ${args[2]}`);
+            return false;
+        }
+
+        console.log(`Implemented 'analyseApp' method passes validation checks.`);
+        return true;
+    }
+
     async performAnalysis() {
+
+        const isAnalysisMethodValid = this.verifyAnalysisMethodParameters();
+        if(!isAnalysisMethodValid) {
+            console.log(`Analysis Method Invalid.`);
+            return isAnalysisMethodValid;
+        }
+
         const rows = await this.getAppVersionIDs();
         for(const row of rows) {
             console.log(`Analysing AppID: ${row.id}`);
