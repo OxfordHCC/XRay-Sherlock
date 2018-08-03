@@ -9,7 +9,7 @@ In order to begin using Sherlock, all you need to do is 'require' it in your pro
 
 Example
 ```js
-const Sherlock = require('../sherlock/sherlock);
+const Sherlock = require('../sherlock/sherlock');
 ```
 
 The above example will allow you to include the Sherlock class in your project, if you
