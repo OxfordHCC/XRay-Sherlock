@@ -251,16 +251,16 @@ class Sherlock {
 
         console.log(`Number of Dex Files found: ${dexFiles.length}`);
 
-        let dexLines = [];
+        let dex = "";
 
-        for (const dex of dexFiles) {
+        for (const dexFile of dexFiles) {
             const { stdout, stderr } = await bashExec(
-                `strings -n 11 ${config.apk_unpack_root}/${appInfo.app}/${dex}`,
+                `strings -n 11 ${config.apk_unpack_root}/${appInfo.app}/${dexFile}`,
                 { maxBuffer: Infinity }
             );
-            dexLines = dexLines.concat(stdout.split('\n'));
+            dex = dex.concat("\n").concat(stdout);
         }
-        return dexLines;
+        return dex;
     }
 
     async analyseApp() {
@@ -309,8 +309,8 @@ class Sherlock {
             return false;
         }
 
-        if (args[1] != 'dexLines') {
-            console.log(`Invalid second parameter name for the implemented 'analyseApp' method. Expected 'dexLines', found ${args[1]}`);
+        if (args[1] != 'dex') {
+            console.log(`Invalid second parameter name for the implemented 'analyseApp' method. Expected 'dex', found ${args[1]}`);
             return false;
         }
 

@@ -8,12 +8,12 @@ class AdsAndConsentAnalyser extends Sherlock {
      * Overrides the parent process APK Manifest method.
      *
      * @param {JSON equivalent of the AndroidManifest.xml file.} mainfest
-     * @param {A string array of lines found in each of the classes.dex files} dexLines
+     * @param {A string array of lines found in each of the classes.dex files} dex
      * @param {A JSON object of smali filepaths and converted Java package names} smali
      *
      * @returns {The results of analysis as a JSON object.}
      */
-    async analyseApp(manifest, dexLines, smali) {
+    async analyseApp(manifest, dex, smali) {
         // Build a JSON object of the results
         console.log(`Analysing Package Usage in app.`)
 

@@ -30,9 +30,9 @@ const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\
  * The manifest param will contain things like permission information, and sometimes
  * even API keys.
  *
- *                                  dexLines
+ *                                  dex
  *                                  ********
- * The dexLines param will contain evidence of hostnames and function calls.
+ * The dex param will contain evidence of hostnames and function calls.
  *
  *                                   smali
  *                                   *****
@@ -61,17 +61,17 @@ class ExampleAdHoc extends Sherlock {
      * Overrides the parent process APK Manifest method.
      *
      * @param {JSON equivalent of the AndroidManifest.xml file.} mainfest
-     * @param {A string array of lines found in each of the classes.dex files} dexLines
+     * @param {A string array of lines found in each of the classes.dex files} dex
      * @param {A JSON object of smali filepaths and converted Java package names} smali
      *
      * @returns {The results of analysis as a JSON object.}
      */
-    async analyseApp(manifest, dexLines, smali) {
+    async analyseApp(manifest, dex, smali) {
         // Build a JSON object of the results
         console.log(`Using Example Analysis App method`)
 
         // Using the classes.dex
-        const urls = dexLines.map((line) => line.match(regex)).reduce((a,b) => a.concat(b), []).filter((match) => match);
+        const urls = dex.split('\n').map((line) => line.match(regex)).reduce((a,b) => a.concat(b), []).filter((match) => match);
 
         // using the AndroidManifest.xml
         const permissions = manifest['manifest']['uses-permission'].map((perm) => perm['$']['android:name'])
