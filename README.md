@@ -115,3 +115,46 @@ You may wish to search for specific packages that are used within an APK, a poss
         const hasGoogleAds = smali.packages.some((name) => name.includes('com.google.ads'));
 
 ```
+
+## Analyse Apps Implementation
+
+The following is an example implementation of a class that extends `sherlock`. 
+
+It searches for hostnames and ip addresses present in the dex files, scrapes permissions from the manifest, and also counts and lists all of the packages in the application.
+
+```js
+const Sherlock = require('../sherlock/sherlock');
+
+const regex = /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,64}(?:\:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,25})?\@)?)?((?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,64}\.)+(?:(?:aero|arpa|asia|a[cdefgilmnoqrstuwxz])|(?:biz|b[abdefghijmnorstvwyz])|(?:cat|com|coop|c[acdfghiklmnoruvxyz])|d[ejkmoz]|(?:edu|e[cegrstu])|f[ijkmor]|(?:gov|g[abdefghilmnpqrstuwy])|h[kmnrtu]|(?:info|int|i[delmnoqrst])|(?:jobs|j[emop])|k[eghimnrwyz]|l[abcikrstuvy]|(?:mil|mobi|museum|m[acdghklmnopqrstuvwxyz])|(?:name|net|n[acefgilopruz])|(?:org|om)|(?:pro|p[aefghklmnrstwy])|qa|r[eouw]|s[abcdeghijklmnortuvyz]|(?:tel|travel|t[cdfghjklmnoprtvwz])|u[agkmsyz]|v[aceginu]|w[fs]|y[etu]|z[amw]))|(?:(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[0-9])))(?:\:\d{1,5})?)(\/(?:(?:[a-zA-Z0-9\;\/\?\:\@\&\=\#\~\-\.\+\!\*\'\(\)\,\_])|(?:\%[a-fA-F0-9]{2}))*)?(?:\b|$)/gi;
+
+class ExampleAdHoc extends Sherlock {
+    async analyseApp(manifest, dex, smali) {
+
+        const urls = dex.split('\n').map((line) => line.match(regex)).reduce((a,b) => a.concat(b), []).filter((match) => match);
+
+        const permissions = manifest['manifest']['uses-permission'].map((perm) => perm['$']['android:name'])
+
+        const packages = smali.packages;
+
+        const jsonResult = {
+            httpLines : urls,
+            httpCount : urls.length,
+
+            permission : permissions,
+            permissionCount : permissions.length,
+
+            packageCount : packages.length,
+            packages : packages
+        }
+
+        return jsonResult
+    }
+}
+
+function main() {
+    const analyser = new ExampleAdHoc('Example','Adam');
+    analyser.performAnalysis().catch(err => console.log(err));
+}
+
+main();
+```
