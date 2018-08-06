@@ -45,7 +45,7 @@ The Android Manifest describes information essential for  the buidling of an And
 
 The `manifest`  parameter will hold a JSON object equivalent of the `AndroidManifest.xml` that was unpacked from the APK.
 
-#### `Manifest` Usage Example
+#### Usage Example
 
 You might want to extract the permissions that a given app requests, that can be done by accessing the `'uses-permission'` array within the `'manifest'` element.
 
@@ -75,7 +75,7 @@ The `dex` parameter will hold a string representing all the `classes.dex` files 
 
 A nice description can be found on [StackOverflow](https://stackoverflow.com/questions/7750448/what-are-dex-files-in-android).
 
-#### `dex` Example Usage
+#### Example Usage
 
 You may wish to extract the hostnames and IP Addresses that are present within an APK. Using regex, you can achieve somewhat comprehensive results with ease.
 
@@ -87,3 +87,31 @@ const urls = dex.split('\n').map((line) => line.match(regex)).reduce((a,b) => a.
 ```
 
 ### Third: `smali`
+
+Decompiling `classes.dex` produces a set of `.smali` files. Each smali file represents the assembly for a single package within the APK. The code within a smali file is in the assembly language for the DalvikVM.
+
+The `smali` parameter will provide access to a JSON object consisting of 2 structures. `smaliPaths` contains an array of paths to all smali files within the APK, and `packages` contains an array of the names of each package that a smali file represents. The JSON takes the following structure:
+
+```json
+{
+    "smaliPaths" : [
+        "/tmp/xray/unpack/smali/com/google/ads/consent",
+        ...
+    ],
+    "packages" : [
+        "com.google.ads.consent"
+        ...
+    ]
+
+}
+```
+
+#### Example Usage
+
+You may wish to search for specific packages that are used within an APK, a possible usage would be to check if an application uses the Google Ads package, as well as the Google Ads Consent package.
+
+```js
+        const hasGoogleConsent = smali.packages.some((name) => name.includes('com.google.ads.consent'));
+        const hasGoogleAds = smali.packages.some((name) => name.includes('com.google.ads'));
+
+```
