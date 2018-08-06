@@ -116,7 +116,7 @@ You may wish to search for specific packages that are used within an APK, a poss
 
 ```
 
-## Analyse Apps Implementation
+## Example AdHoc Analyser Implementation
 
 The following is an example implementation of a class that extends `sherlock`. 
 
