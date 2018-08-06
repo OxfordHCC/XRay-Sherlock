@@ -118,7 +118,7 @@ You may wish to search for specific packages that are used within an APK, a poss
 
 ## Example AdHoc Analyser Implementation
 
-The following is an example implementation of a class that extends `sherlock`. 
+The following is an example implementation of a class that extends `sherlock`.
 
 It searches for hostnames and ip addresses present in the dex files, scrapes permissions from the manifest, and also counts and lists all of the packages in the application.
 
